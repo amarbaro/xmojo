@@ -1,0 +1,25 @@
+[workspace]
+authors = ["amarbaro.org <dev@amarbaro.com>"]
+channels = ["https://conda.modular.com/max", "https://repo.prefix.dev/modular-community", "conda-forge"]
+name = "xmojo"
+platforms = ["linux-64"]
+version = "0.1.0"
+description = "XML for Mojo: parse into structs, stream records, write back, checked against expat"
+license = "Apache-2.0"
+license-file = "LICENSE"
+preview = ["pixi-build"]
+
+[tasks]
+test = "sh -c 'st=0; for f in tests/test_*.mojo; do echo \"== $f\"; mojo run -I src \"$f\" || st=1; done; exit $st'"
+gate = "bash tools/gate.sh"
+bench = "bash tools/bench.sh"
+# Differential test against expat: generated, mutated and fixture XML (args: N SEED [--negative]).
+oracle = "sh -c 'set -e; mojo build -I src tools/xmldump.mojo -o .work/xmldump; python3 tools/oracle.py \"$@\"' oracle"
+build = "mojo precompile -I src src/xmojo -o .work/xmojo.mojoc"
+# Build the conda package from recipe.yaml and run its tests against the installed xmojo.mojoc.
+package = "rattler-build build --recipe recipe.yaml --output-dir .work/conda -c https://conda.modular.com/max -c https://repo.prefix.dev/modular-community -c conda-forge"
+
+[dependencies]
+mojo = "==1.1.0"
+emberserde = "==0.1.0"
+python = "3.13.*"   # the oracle (tools/oracle.py) is CPython's expat, pinned through pixi.lock

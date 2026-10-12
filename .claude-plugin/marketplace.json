@@ -1,0 +1,22 @@
+{
+  "name": "xmojo",
+  "owner": {
+    "name": "amarbaro.org",
+    "email": "dev@amarbaro.com"
+  },
+  "metadata": {
+    "description": "Agent skill for xmojo, XML for Mojo",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "xmojo",
+      "description": "Read, write and stream XML in Mojo with xmojo",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/xmojo"
+      ]
+    }
+  ]
+}
