@@ -2,12 +2,11 @@
 
 XML for Mojo: parse into your own structs, write them back, stream big documents record by
 record. Every gate run checks the parser against CPython's expat on 4,030 generated, mutated and
-real documents with zero disagreements, and it parses 1.7 to 2.3 times faster than CPython's
+real documents with zero disagreements, and it parses 1.5 to 1.7 times faster than CPython's
 C-backed ElementTree on the same input.
 
-Decoding and encoding go through [emberserde](https://github.com/bgreni/EmberSerde), the
-serialization framework behind EmberJson, so a struct that decodes from JSON decodes from XML with
-no extra annotations.
+Decoding and encoding walk your struct's fields with Mojo's standard `reflection` module: no
+dependency beyond the Mojo standard library.
 
 | | |
 |---|---|
@@ -22,26 +21,26 @@ still holds the whole input in memory; only the tree is bounded.
 
 ## Performance
 
-`tools/bench.sh` (`pixi run bench`): best of 5, Mojo 1.1.0, one core of a Ryzen 7 7800X3D.
+`tools/bench.sh` (`pixi run bench`): best of 5, Mojo 1.2.0, one core of a Ryzen 7 7800X3D.
 
 | case | xmojo | peak RSS | CPython 3.13 ElementTree |
 |---|---|---|---|
-| parse, 80k sibling elements (1.1 MB) | 15.4 ms | 33.2 MB | 29.9 ms |
-| parse, 80k nested elements | 8.9 ms | 32.9 MB | 20.3 ms |
-| parse, arXiv Atom fixture x2000 | 32.7 ms | | 56.1 ms |
-| `from_xml`, 80k items | 24.9 ms | 39.5 MB | |
-| `Records` + `from_xml` per item, 80k | 87.0 ms | 22.8 MB | |
-| `to_xml`, 80k items (1.43 MB out) | 6.9 ms | 28.9 MB | |
+| parse, 80k sibling elements (1.1 MB) | 18.0 ms | 22.2 MB | 26.8 ms |
+| parse, 80k nested elements | 11.4 ms | 23.9 MB | 19.1 ms |
+| parse, arXiv Atom fixture x2000 | 30.8 ms | | 50.9 ms |
+| `from_xml`, 80k items | 28.0 ms | 24.7 MB | |
+| `Records` + `from_xml` per item, 80k | 84.1 ms | 15.0 MB | |
+| `to_xml`, 80k items (1.43 MB out) | 5.3 ms | 20.0 MB | |
 
 ElementTree also builds Python objects, so its column places xmojo rather than ranks it.
 Streaming trades time for memory: each record is copied and parsed into its own `Doc`, which
-makes it 3.5 times slower than whole-document `from_xml` on the 14-byte records above. Records
+makes it 3 times slower than whole-document `from_xml` on the 14-byte records above. Records
 of real size amortize that cost.
 
 ## Setup
 
-[pixi](https://pixi.sh) installs Mojo 1.1.0, emberserde 0.1.0 (modular-community channel) and the
-Python that runs the oracle, all pinned in `pixi.lock`:
+[pixi](https://pixi.sh) installs Mojo 1.2.0 and the Python that runs the oracle, both pinned in
+`pixi.lock`:
 
 ```
 pixi install
@@ -49,8 +48,7 @@ pixi run test      # unit tests
 pixi run gate      # unit tests, tool builds, expat differential, negative control
 ```
 
-From another project: build with `-I src`, or install the conda package (see Packaging), with
-emberserde 0.1.0 available.
+From another project: build with `-I src`, or install the conda package (see Packaging).
 
 ## Usage
 
@@ -113,11 +111,12 @@ the layout of Modular's skills repository; Claude Code: `/plugin marketplace add
 | unit enum (`Variant` of fieldless `ArmName` structs) | attribute or element text matched against the arm names |
 | nested struct | the first child element with that local name |
 
-emberserde's field and struct modifiers apply: `Rename`, `RenameAll`, `Skip`, `Defaulted`
+Field and struct modifiers, imported from `xmojo`: `Rename`, `RenameAll`, `Skip`, `Defaulted`
 (the default when the field is absent), `Field[..., extra_names=...]` aliases and
-`DenyUnknownFields` (an unknown attribute or child raises `UnknownField`); see
+`DenyUnknownFields` (an unknown attribute or child raises "unknown attribute" or "unknown
+element"); see
 `tests/test_xmojo_fields.mojo`. Fields match by local name, ignoring prefixes (`arxiv:doi` binds a field `doi`). Unknown elements
-and attributes are skipped. A required field with no source raises `MissingField`; a field named
+and attributes are skipped. A required field with no source raises "missing field: <name>"; a field named
 `text` on an element without text is `""`. On output, scalars become attributes, a field named
 `text` the element's text, structs and list items child elements, and values are escaped so that
 `from_xml[T](to_xml(v, "r"))` gives `v` back.
