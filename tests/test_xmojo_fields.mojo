@@ -1,8 +1,8 @@
 # Copyright 2026 amarbaro.org. Licensed under the Apache License, Version 2.0.
-# emberserde's field and struct modifiers through xmojo, both directions.
+# Field and struct modifiers through xmojo, both directions.
 from std.testing import assert_equal, assert_true, TestSuite
-from emberserde import Field, Rename, Skip, Defaulted
-from emberserde.struct_modifiers import RenameAll, RenamePolicy, DenyUnknownFields
+from xmojo import Field, Rename, Skip, Defaulted
+from xmojo import RenameAll, RenamePolicy, DenyUnknownFields
 from xmojo import from_xml, to_xml
 
 

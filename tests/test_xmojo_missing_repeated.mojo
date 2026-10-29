@@ -1,7 +1,7 @@
 # Copyright 2026 amarbaro.org. Licensed under the Apache License, Version 2.0.
 # A declared List field whose element never appears on the wire decodes as an
 # empty list; a declared Optional as None; a required scalar still raises
-# MissingField (emberserde's "missing field: <name>"). Shape taken from NCBI
+# MissingField ("missing field: <name>"). Shape taken from NCBI
 # esearch's zero-hit answer: `<IdList/>`.
 from std.testing import assert_equal, assert_true, assert_raises, TestSuite
 from xmojo import from_xml

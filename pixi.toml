@@ -21,5 +21,4 @@ package = "rattler-build build --recipe recipe.yaml --output-dir .work/conda -c 
 
 [dependencies]
 mojo = "==1.1.0"
-emberserde = "==0.1.0"
 python = "3.13.*"   # the oracle (tools/oracle.py) is CPython's expat, pinned through pixi.lock

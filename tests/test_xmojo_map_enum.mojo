@@ -1,7 +1,7 @@
 # Copyright 2026 amarbaro.org. Licensed under the Apache License, Version 2.0.
 from std.utils import Variant
 from std.testing import assert_equal, assert_true, TestSuite
-from emberserde.struct_modifiers import ArmName
+from xmojo import ArmName
 from xmojo import from_xml
 
 
