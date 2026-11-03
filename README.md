@@ -1,5 +1,9 @@
 # xmojo
 
+<!-- badges -->
+[![test](https://github.com/amarbaro/xmojo/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/amarbaro/xmojo/actions/workflows/test.yml) [![latest release](https://img.shields.io/github/v/release/amarbaro/xmojo)](https://github.com/amarbaro/xmojo/releases/latest) [![license](https://img.shields.io/github/license/amarbaro/xmojo)](https://github.com/amarbaro/xmojo/blob/main/LICENSE)
+<!-- /badges -->
+
 XML for Mojo: parse into your own structs, write them back, stream big documents record by
 record. Every gate run checks the parser against CPython's expat on 4,030 generated, mutated and
 real documents with zero disagreements, and it parses 1.5 to 1.7 times faster than CPython's
