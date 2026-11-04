@@ -122,13 +122,21 @@ __extension SIMD(XmlDecode):
             return rebind[Self](Scalar[DType.bool](_parse_bool(src)))
         var text = src.scalar_text()
         var s = text.strip()
-        try:
-            comptime if Self.dtype.is_floating_point():
+        comptime if Self.dtype.is_floating_point():
+            try:
                 return rebind[Self](Scalar[Self.dtype](Float64(s)))
-            else:
-                return rebind[Self](Scalar[Self.dtype](Int(s)))
-        except:
-            raise Error("xmojo: not a number: ", s)
+            except:
+                raise Error("xmojo: not a number: ", s)
+        else:
+            var v: Int
+            try:
+                v = Int(s)
+            except:
+                raise Error("xmojo: not a number: ", s)
+            var r = Scalar[Self.dtype](v)
+            if Int(r) != v or (v < 0 and Self.dtype.is_unsigned()):
+                raise Error("xmojo: ", s, " is out of range")
+            return rebind[Self](r)
 
 
 __extension Optional(XmlDecode):

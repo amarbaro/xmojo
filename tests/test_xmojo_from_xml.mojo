@@ -163,5 +163,32 @@ def test_records_stream_with_inherited_namespaces() raises:
     assert_true(not it2.next())
 
 
+@fieldwise_init
+struct Narrow(Copyable, Defaultable, Movable):
+    var a: UInt8
+    var b: Int32
+    var c: Int8
+
+    def __init__(out self):
+        self.a = 0
+        self.b = 0
+        self.c = 0
+
+
+def test_integer_out_of_range_raises() raises:
+    # review C, xmojo P0: "300" read as UInt8 44, "-1" as 255, 4294967297 as Int32 1
+    for bad in ['a="300"', 'a="-1"', 'b="4294967297"', 'c="128"', 'c="-129"']:
+        var raised = False
+        try:
+            _ = from_xml[Narrow]("<s " + bad + "/>")
+        except e:
+            raised = String(e).find("out of range") >= 0
+        assert_true(raised, "accepted " + bad)
+    var n = from_xml[Narrow]('<s a="255" b="-2147483648" c="-128"/>')
+    assert_equal(Int(n.a), 255)
+    assert_equal(Int(n.b), -2147483648)
+    assert_equal(Int(n.c), -128)
+
+
 def main() raises:
     TestSuite.discover_tests[__functions_in_module()]().run()
