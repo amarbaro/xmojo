@@ -132,6 +132,8 @@ def _parse_uint(digits: Span[UInt8, _], base: Int) raises -> UInt32:
         if d >= base:
             raise Error("bad digit in numeric entity")
         v = v * UInt32(base) + UInt32(d)
+        if v > 0x10FFFF:  # also stops the UInt32 wrap: &#4294967361; would read as 'A'
+            raise Error("numeric entity out of range")
     return v
 
 
