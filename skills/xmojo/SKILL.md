@@ -1,6 +1,6 @@
 ---
 name: xmojo
-description: Read and write XML in Mojo with xmojo. Use when Mojo code has to parse XML (feeds, Atom, RSS, PubMed/NCBI E-utilities, configs, SOAP-like payloads) into structs, write structs as XML, stream large XML files record by record, or walk an XML tree; also when fixing xmojo errors (MissingField, UnknownField, XmlError) or contributing to the xmojo repository. Covers install, the struct mapping, emberserde field modifiers, streaming, the DOM, and the traps agents hit.
+description: Read and write XML in Mojo with xmojo. Use when Mojo code has to parse XML (feeds, Atom, RSS, PubMed/NCBI E-utilities, configs, SOAP-like payloads) into structs, write structs as XML, stream large XML files record by record, or walk an XML tree; also when fixing xmojo errors (MissingField, UnknownField, XmlError) or contributing to the xmojo repository. Covers install, the struct mapping, field modifiers, streaming, the DOM, and the traps agents hit.
 ---
 
 <!-- A correction layer for an agent's context: every line costs context. Keep it terse, keep
@@ -9,14 +9,13 @@ has a `def main`, in the gate. -->
 
 # xmojo
 
-XML for Mojo 1.1: `from_xml[T]` (XML into a struct), `to_xml` (struct into XML), `Records`
-(stream one element at a time), `parse` (flat DOM). Decoding goes through emberserde, so the
-same struct also works with EmberJson. Mojo syntax itself (no `fn`, `comptime`, `def main()
+XML for Mojo 1.2: `from_xml[T]` (XML into a struct), `to_xml` (struct into XML), `Records`
+(stream one element at a time), `parse` (flat DOM). Mojo syntax itself (no `fn`, `comptime`, `def main()
 raises`) comes from Modular's `mojo-syntax` skill.
 
 ## Install
 
-pixi, with the modular-community channel for emberserde:
+pixi:
 
 ```toml
 [workspace]
@@ -24,8 +23,7 @@ channels = ["https://conda.modular.com/max", "https://repo.prefix.dev/modular-co
 platforms = ["linux-64"]
 
 [dependencies]
-mojo = "==1.1.0"
-emberserde = "==0.1.0"
+mojo = "==1.2.0"
 ```
 
 Then either the conda package built from xmojo's `recipe.yaml`, or a checkout of the repository
@@ -80,7 +78,7 @@ def main() raises:
 | repeated children | `List[T]` (absent: `[]`) |
 | optional value | `Optional[T]` (absent: `None`) |
 | enum | `Variant` of fieldless structs that conform to `ArmName` (unit arms only) |
-| another wire name | `Rename[String, "userName"]`, struct-wide `RenameAll` (emberserde) |
+| another wire name | `Rename[String, "userName"]`, struct-wide `RenameAll` |
 | default when absent | `Defaulted[Int, 3]`; never read or written: `Skip[T]` |
 | accept old names | `Field[String, extra_names=List[String](["mail"])]` |
 | reject unknown attributes/children | conform the struct to `DenyUnknownFields` |
