@@ -1,7 +1,7 @@
 # xmojo
 
 <!-- badges -->
-[![test](https://github.com/amarbaro/xmojo/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/amarbaro/xmojo/actions/workflows/test.yml) [![latest release](https://img.shields.io/github/v/release/amarbaro/xmojo)](https://github.com/amarbaro/xmojo/releases/latest) [![license](https://img.shields.io/github/license/amarbaro/xmojo)](https://github.com/amarbaro/xmojo/blob/main/LICENSE)
+[![ci](https://github.com/amarbaro/xmojo/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/amarbaro/xmojo/actions/workflows/ci.yml) [![latest release](https://img.shields.io/github/v/release/amarbaro/xmojo)](https://github.com/amarbaro/xmojo/releases/latest) [![license](https://img.shields.io/github/license/amarbaro/xmojo)](https://github.com/amarbaro/xmojo/blob/main/LICENSE) [![checks](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/amarbaro/xmojo/badges/checks.json)](https://github.com/amarbaro/xmojo/actions/workflows/ci.yml)
 <!-- /badges -->
 
 XML for Mojo: parse into your own structs, write them back, stream big documents record by

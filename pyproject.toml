@@ -1,0 +1,11 @@
+# Metadata for recipe-gen and the mojo-libs index. The build environment is pixi.toml.
+[project]
+name = "xmojo"
+version = "0.2.0"
+description = "XML for Mojo: parse into structs, stream records, write back, checked against expat"
+license = "Apache-2.0"
+dependencies = ["mojo==1.2.0"]
+
+[project.urls]
+Homepage = "https://github.com/amarbaro/xmojo"
+Repository = "https://github.com/amarbaro/xmojo"
