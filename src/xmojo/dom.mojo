@@ -35,7 +35,7 @@ struct AttrRec(ImplicitlyCopyable):
     var len: Int32
 
 
-struct Doc(Movable):
+struct Doc(Movable, Sized):
     var nodes: List[Node]
     var attrs: List[AttrRec]
     var names: List[String]          # interned element and attribute names

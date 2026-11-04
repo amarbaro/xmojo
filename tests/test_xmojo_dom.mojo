@@ -11,6 +11,11 @@ def _fixtures() -> String:
     return v if v != "" else String("tests/fixtures")
 
 
+def test_len_is_element_count() raises:
+    # review C, xmojo P1: README says len(doc) is the element count; it did not compile
+    assert_equal(len(parse("<a><b/><c><d/></c></a>")), 4)
+
+
 def test_arxiv_atom_dom() raises:
     var s = open(_fixtures() + "/arxiv_1706.03762.atom", "r").read()
     var d = parse(s)
