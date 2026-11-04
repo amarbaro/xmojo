@@ -266,6 +266,10 @@ def parse(s: StringSlice, entities: Dict[String, String] = Dict[String, String](
     var lasts = List[Int32]()  # last child so far of each open element, parallel to `stack`
     var keeps = List[Bool]()   # xml:space="preserve" in effect, parallel to `stack`
     var starts = List[Int]()   # byte offset of each open element's start tag
+    # Text that resumes after a child is appended where it falls; the earlier spans of an element
+    # wait in `runs` (off, len pairs) and are joined once when it closes, so the copy is linear.
+    var runs = List[Int32]()
+    var run_at = List[Int]()   # len(runs) at each open element's start, parallel to `stack`
     var scratch = List[UInt8]()
     # Namespace scopes (prefix -> uri id) live in an arena; `scope_idx` (parallel to
     # `stack`) names the entry in effect for each open element. Index 0 is the implicit
@@ -362,6 +366,7 @@ def parse(s: StringSlice, entities: Dict[String, String] = Dict[String, String](
                 keeps.append(keep)
                 tok.keep_space = keep
                 starts.append(t.start)
+                run_at.append(len(runs))
                 scope_idx.append(this_scope_i)
         elif t.kind == TokenKind.END:
             var end_name = _str(src, t.s, t.e)
@@ -373,6 +378,18 @@ def parse(s: StringSlice, entities: Dict[String, String] = Dict[String, String](
             tok.keep_space = keeps[len(keeps) - 1] if len(keeps) > 0 else False
             _ = starts.pop()
             _ = scope_idx.pop()
+            var r0 = run_at.pop()
+            if len(runs) > r0:   # joins the element's text spans into one contiguous run
+                if doc.nodes[top].text_len > 0:
+                    runs.append(doc.nodes[top].text_off)
+                    runs.append(doc.nodes[top].text_len)
+                var joined = len(doc.pool)
+                for r in range(r0, len(runs), 2):
+                    for q in range(Int(runs[r]), Int(runs[r]) + Int(runs[r + 1])):
+                        doc.pool.append(doc.pool[q])
+                doc.nodes[top].text_off = Int32(joined)
+                doc.nodes[top].text_len = Int32(len(doc.pool) - joined)
+                runs.resize(r0, 0)
             ref open_name = doc.names[Int(doc.nodes[top].name)]
             if open_name != end_name:
                 raise make_error(
@@ -389,11 +406,10 @@ def parse(s: StringSlice, entities: Dict[String, String] = Dict[String, String](
             if n == 0:
                 off = len(doc.pool)
             elif off + n != len(doc.pool):
-                # Text resumes after a child's bytes: move it to the end to keep it contiguous.
-                var moved = len(doc.pool)
-                for q in range(off, off + n):
-                    doc.pool.append(doc.pool[q])
-                off = moved
+                # Text resumes after a child's bytes: park the span, start a new one here.
+                runs.append(Int32(off))
+                runs.append(Int32(n))
+                off = len(doc.pool)
             try:
                 if t.cdata:
                     _decode[cdata=True](src, raw, t.start, doc.pool, entities)

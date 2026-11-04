@@ -16,6 +16,18 @@ def test_len_is_element_count() raises:
     assert_equal(len(parse("<a><b/><c><d/></c></a>")), 4)
 
 
+def test_mixed_content_is_linear() raises:
+    # review C, xmojo P2: text resuming after a child copied the whole text each time (O(n^2) pool)
+    var s = String("<p>")
+    for _ in range(20000):
+        s += 't<b c="1"/>u<i>v</i>'
+    s += "</p>"
+    var d = parse(s)
+    assert_equal(d.text(0).byte_length(), 40000)
+    assert_equal(d.attr(1, "c").value(), "1")
+    assert_true(len(d.pool) < 4 * s.byte_length(), "pool must stay linear in the input")
+
+
 def test_arxiv_atom_dom() raises:
     var s = open(_fixtures() + "/arxiv_1706.03762.atom", "r").read()
     var d = parse(s)
