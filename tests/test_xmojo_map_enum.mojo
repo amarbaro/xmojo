@@ -2,7 +2,7 @@
 from std.utils import Variant
 from std.testing import assert_equal, assert_true, TestSuite
 from xmojo import ArmName
-from xmojo import from_xml
+from xmojo import from_xml, to_xml
 
 
 def test_dict_from_children() raises:
@@ -56,6 +56,22 @@ def test_enum_unknown_arm_raises_with_message() raises:
         assert_true(String(e).find("enum") >= 0, String(e))
         assert_true(String(e).find("Gamma") >= 0, String(e))
     assert_true(raised, "expected DeserializationError")
+
+
+def test_dict_key_must_be_an_xml_name() raises:
+    # review C, xmojo P0: a key became markup, `x" evil="1` gave <r x" evil="1="v">
+    for key in ['x" evil="1', "a b", "1a", "", "<x>", "a=b"]:
+        var m = Dict[String, String]()
+        m[key] = "v"
+        var raised = False
+        try:
+            _ = to_xml(m, "r")
+        except e:
+            raised = String(e).find("not an XML name") >= 0
+        assert_true(raised, "key accepted: " + key)
+    var ok = Dict[String, String]()
+    ok["p:k-1.b"] = "v"
+    assert_equal(to_xml(ok, "r"), "<p:k-1.b>v</p:k-1.b>")
 
 
 def main() raises:

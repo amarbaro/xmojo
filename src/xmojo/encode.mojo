@@ -6,6 +6,7 @@
 from std.builtin.rebind import downcast
 from std.reflection import reflect
 from std.utils import Variant
+from .tokenizer import _is_name_byte, _is_name_start
 from .field import Field, arm_tag, has_unique_wire_names, is_skipped, static_wire_name
 
 comptime Out = Pointer[String, MutUntrackedOrigin]   # every target outlives the call that writes it
@@ -13,6 +14,16 @@ comptime Out = Pointer[String, MutUntrackedOrigin]   # every target outlives the
 
 def _to(mut s: String) -> Out:
     return Pointer(to=s).unsafe_origin_cast[MutUntrackedOrigin]()
+
+
+def _check_name(key: String) raises:
+    """A map key becomes an element or attribute name: refuse what is not an XML name instead of writing markup."""
+    var b = key.as_bytes()
+    var ok = len(b) > 0 and _is_name_start(b[0])
+    for c in b:
+        ok = ok and _is_name_byte(c)
+    if not ok:
+        raise Error("xmojo: map key is not an XML name: '", key, "'")
 
 
 def _escape[attr: Bool](mut out: String, s: StringSlice):
@@ -120,8 +131,8 @@ __extension Dict(XmlEncode):
         comptime assert reflect[Self.K].name() == reflect[String].name(), "xmojo: map keys must be String"
         var as_attrs = o.name == "attrs"
         for entry in self.items():
-            var key = String()
-            _escape[False](key, rebind[String](entry.key))
+            var key = rebind[String](entry.key)
+            _check_name(key)
             var sub = XmlOut(o.out, o.attrs, key^, not as_attrs)
             encode(entry.value, sub)
 
