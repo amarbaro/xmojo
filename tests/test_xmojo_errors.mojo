@@ -106,5 +106,23 @@ def test_message_names_the_open_element_only_when_there_is_one() raises:
         assert_equal(String(e), "xmojo: content after the root element at 1:5")
 
 
+def test_many_attributes_are_linear() raises:
+    # review C, xmojo P2: the duplicate check scanned every earlier attribute, O(a^2) per tag
+    var s = String("<a")
+    for i in range(30000):
+        s += " n" + String(i) + '="1"'
+    var t0 = perf_counter_ns()
+    var d = parse(s + "/>")
+    assert_true(perf_counter_ns() - t0 < 300_000_000, "30,000 attributes must parse in under 0.3 s")
+    assert_equal(d.attr(0, "n29999").value(), "1")
+    var raised = False
+    try:
+        _ = parse(s + ' n20000="2"/>')
+    except e:
+        raised = True
+        assert_equal(String(e), "xmojo: duplicate attribute 'n20000' in <a> at 1:1")
+    assert_true(raised, "a duplicate among many attributes must raise")
+
+
 def main() raises:
     TestSuite.discover_tests[__functions_in_module()]().run()
