@@ -28,6 +28,32 @@ def test_mixed_content_is_linear() raises:
     assert_true(len(d.pool) < 4 * s.byte_length(), "pool must stay linear in the input")
 
 
+def test_nested_namespace_declarations_are_linear() raises:
+    # review C, xmojo P2: every declaring element copied its parent's whole scope (O(depth^2) memory)
+    var n = 6000
+    var s = String()
+    for i in range(n):
+        s += '<a xmlns:p' + String(i) + '="u' + String(i) + '">'
+    s += "<p" + String(n - 1) + ":z/>"
+    for _ in range(n):
+        s += "</a>"
+    var d = parse(s)
+    assert_equal(len(d), n + 1)
+    assert_equal(d.ns(n), "u" + String(n - 1))
+
+
+def test_namespace_bindings_restore_at_the_end_tag() raises:
+    var d = parse('<r xmlns:p="u1"><a xmlns:p="u2"><p:x/></a><p:y/><b xmlns:q="u3"/></r>')
+    assert_equal(d.ns(2), "u2")
+    assert_equal(d.ns(3), "u1")
+    var raised = False
+    try:
+        _ = parse('<r><b xmlns:q="u3"/><q:z/></r>')
+    except:
+        raised = True
+    assert_true(raised, "q: must be out of scope after the self-closing <b/>")
+
+
 def test_arxiv_atom_dom() raises:
     var s = open(_fixtures() + "/arxiv_1706.03762.atom", "r").read()
     var d = parse(s)

@@ -251,6 +251,17 @@ def _attr_ns_err(src: Span[UInt8, _], a: Attr, colon: Int, at: Int) -> XmlError:
     return make_error(src, at, "", "undeclared namespace prefix '" + _str(src, a.name_s, colon) + "'")
 
 
+def _unbind(mut scope: Dict[String, Int], mut undo_p: List[String], mut undo_old: List[Int], mark: Int):
+    """Restore the namespace bindings changed since `mark`, newest first."""
+    while len(undo_p) > mark:
+        var p = undo_p.pop()
+        var old = undo_old.pop()
+        if old < 0:
+            _ = scope.pop(p, 0)
+        else:
+            scope[p] = old
+
+
 def parse(s: StringSlice, entities: Dict[String, String] = Dict[String, String]()) raises XmlError -> Doc:
     """Parse UTF-8 XML text into a `Doc`. `entities` adds named entities beyond XML's five
     (`html_entities()` for HTML's), consulted only for an otherwise unknown `&name;`."""
@@ -271,13 +282,12 @@ def parse(s: StringSlice, entities: Dict[String, String] = Dict[String, String](
     var runs = List[Int32]()
     var run_at = List[Int]()   # len(runs) at each open element's start, parallel to `stack`
     var scratch = List[UInt8]()
-    # Namespace scopes (prefix -> uri id) live in an arena; `scope_idx` (parallel to
-    # `stack`) names the entry in effect for each open element. Index 0 is the implicit
-    # empty scope. An element that declares nothing shares its parent's index; only a
-    # declaring element allocates a new entry (parent's scope, copied, plus its own).
-    var scope_arena = List[Dict[String, Int]]()
-    scope_arena.append({"xml": 1})
-    var scope_idx = List[Int]()
+    # One namespace scope (prefix -> uri id) for the open element. A declaration logs the binding it
+    # replaced (-1 = none) and the end tag restores it, so a scope costs its own declarations only.
+    var scope: Dict[String, Int] = {"xml": 1}
+    var undo_p = List[String]()
+    var undo_old = List[Int]()
+    var undo_at = List[Int]()   # len(undo_p) at each open element's start, parallel to `stack`
     while True:
         var t: Token
         try:
@@ -291,14 +301,13 @@ def parse(s: StringSlice, entities: Dict[String, String] = Dict[String, String](
                 raise make_error(src, t.start, "", "content after the root element")
             var parent = stack[len(stack) - 1] if len(stack) > 0 else -1
             var idx = len(doc.nodes)
-            var this_scope_i = scope_idx[len(scope_idx) - 1] if len(scope_idx) > 0 else 0
+            var mark = len(undo_p)
             var declares_ns = False
             for a in tok.attrs:
                 if _xmlns_prefix(src, a):
                     declares_ns = True
                     break
             if declares_ns:
-                var scope = scope_arena[this_scope_i].copy()
                 for a in tok.attrs:
                     var p = _xmlns_prefix(src, a)
                     if p:
@@ -315,15 +324,15 @@ def parse(s: StringSlice, entities: Dict[String, String] = Dict[String, String](
                                 break
                         if uri_id == len(doc.uris):
                             doc.uris.append(uri^)
+                        undo_p.append(p.value())
+                        undo_old.append(scope.get(p.value()).or_else(-1))
                         scope[p.value()] = uri_id
-                this_scope_i = len(scope_arena)
-                scope_arena.append(scope^)
             var colon = qname_colon(src, t.s, t.e)
             if colon == -2:
                 raise _with_tag(make_error(src, t.start, "", "malformed qualified name <" + _str(src, t.s, t.e) + ">"), doc, stack)
             var prefix = _str(src, t.s, colon) if colon >= 0 else String("")
-            # Scope 0 binds only `xml:`, so an unprefixed element there skips the lookup.
-            var ns_id = scope_arena[this_scope_i].get(prefix) if colon >= 0 or this_scope_i != 0 else Optional[Int]()
+            # A scope binding only `xml:` lets an unprefixed element skip the lookup.
+            var ns_id = scope.get(prefix) if colon >= 0 or len(scope) > 1 else Optional[Int]()
             if not ns_id and colon >= 0:
                 raise _with_tag(make_error(src, t.start, "", "undeclared namespace prefix '" + prefix + "'"), doc, stack)
             var name_id = doc._intern(_str(src, t.s, t.e))
@@ -339,7 +348,7 @@ def parse(s: StringSlice, entities: Dict[String, String] = Dict[String, String](
                 var ans = 0
                 var acolon = qname_colon(src, a.name_s, a.name_e)
                 if acolon != -1:
-                    ans = _attr_ns_id(scope_arena[this_scope_i], src, a, acolon)
+                    ans = _attr_ns_id(scope, src, a, acolon)
                     if ans < 0:
                         raise _with_tag(_attr_ns_err(src, a, acolon, t.start), doc, stack)
                     if ans == 1 and _str(src, a.name_s, a.name_e) == "xml:space":
@@ -367,7 +376,9 @@ def parse(s: StringSlice, entities: Dict[String, String] = Dict[String, String](
                 tok.keep_space = keep
                 starts.append(t.start)
                 run_at.append(len(runs))
-                scope_idx.append(this_scope_i)
+                undo_at.append(mark)
+            else:
+                _unbind(scope, undo_p, undo_old, mark)
         elif t.kind == TokenKind.END:
             var end_name = _str(src, t.s, t.e)
             if len(stack) == 0:
@@ -377,7 +388,7 @@ def parse(s: StringSlice, entities: Dict[String, String] = Dict[String, String](
             _ = keeps.pop()
             tok.keep_space = keeps[len(keeps) - 1] if len(keeps) > 0 else False
             _ = starts.pop()
-            _ = scope_idx.pop()
+            _unbind(scope, undo_p, undo_old, undo_at.pop())
             var r0 = run_at.pop()
             if len(runs) > r0:   # joins the element's text spans into one contiguous run
                 if doc.nodes[top].text_len > 0:
