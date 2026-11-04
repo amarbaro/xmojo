@@ -300,6 +300,30 @@ struct Tokenizer[origin: ImmOrigin](Movable):
             self.pos += 1
         raise make_error(self.src, start, "", "unterminated construct, expected " + String(lit))
 
+    def _skip_doctype(mut self, start: Int) raises XmlError:
+        """Past the `>` that ends the DOCTYPE: one inside [...], quotes or a comment does not."""
+        var depth = 0
+        var q: UInt8 = 0
+        while self.pos < len(self.src):
+            var c = self.src[self.pos]
+            if q != 0:
+                if c == q:
+                    q = 0
+            elif c == DQ or c == SQ:
+                q = c
+            elif depth > 0 and self._starts_with("<!--"):
+                self._skip_past("-->", start)
+                continue
+            elif c == 91:  # [
+                depth += 1
+            elif c == 93:  # ]
+                depth -= 1
+            elif c == GT and depth <= 0:
+                self.pos += 1
+                return
+            self.pos += 1
+        raise make_error(self.src, start, "", "unterminated construct, expected >")
+
     def _skip_name(mut self):
         while self.pos < len(self.src) and _is_name_byte(self.src[self.pos]):
             self.pos += 1
@@ -347,7 +371,7 @@ struct Tokenizer[origin: ImmOrigin](Movable):
                 self._skip_past("?>", start)
                 continue
             if self._starts_with("<!DOCTYPE"):
-                self._skip_past(">", start)
+                self._skip_doctype(start)
                 continue
             if self._starts_with("<!"):
                 raise make_error(self.src, start, "", "unknown markup declaration")
