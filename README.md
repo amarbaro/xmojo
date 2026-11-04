@@ -151,7 +151,7 @@ allocates nothing per tag. Nesting depth is bounded by memory, not the call stac
 - Encoding: UTF-8 input. A UTF-8 byte order mark is skipped; a declared encoding other than UTF-8
   or US-ASCII raises (transcode first).
 - Errors: malformed input raises `XmlError` with a message, 1-based line and column (bytes) and
-  the nearest open element; `from_xml` reports it as a `DeserializationError` with the same text.
+  the nearest open element; `from_xml` raises an `Error` with the same text.
   The parser does not recover.
 
 ## Verification
