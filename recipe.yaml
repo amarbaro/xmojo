@@ -1,7 +1,7 @@
 # rattler-build recipe, modular-community shape. Build locally: pixi run package (needs
 # rattler-build); the tests import the installed xmojo.mojoc, not the source tree.
 context:
-  version: 0.2.1
+  version: 0.2.2
 
 package:
   name: "xmojo"
