@@ -9,6 +9,9 @@ record. Every gate run checks the parser against CPython's expat on 4,030 genera
 real documents with zero disagreements, and it parses 1.5 to 1.7 times faster than CPython's
 C-backed ElementTree on the same input.
 
+Install: `pixi workspace channel add https://conda.modular.com/max https://prefix.dev/amarbaro/amarbaro`, then `pixi add mojo-xmojo` (import `xmojo`). From source: `git clone https://github.com/amarbaro/xmojo`, then `mojo run -I xmojo/src app.mojo`.
+Toolchain: Mojo 1.2.0 stable only (pinned); not in the nightly matrix. One of 36 libraries in [mojo-libs](https://github.com/amarbaro/mojo-libs).
+
 Decoding and encoding walk your struct's fields with Mojo's standard `reflection` module: no
 dependency beyond the Mojo standard library.
 
@@ -180,6 +183,8 @@ case in `tests/test_xmojo_errors.mojo`.
 `recipe.yaml` (modular-community shape) builds a precompiled `.conda` and runs the unit tests
 against the installed `xmojo.mojoc`: `pixi run package` (needs `rattler-build`), output in
 `.work/conda/`. Not yet on modular-community.
+
+- API: [docs/api.md](docs/api.md) · design: [docs/design.md](docs/design.md) · agent skill: [skills/xmojo/SKILL.md](skills/xmojo/SKILL.md)
 
 ## License
 
