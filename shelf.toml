@@ -1,0 +1,4 @@
+name = "xmojo"
+version = "0.2.2"
+description = "XML for Mojo: parse into structs, stream records, write back, checked against expat"
+tags = ["mojo", "xml", "parser"]
