@@ -52,7 +52,7 @@ def test_rename_all_and_deny_unknown() raises:
         _ = from_xml[Config]('<c hostName="h"><extra/></c>')
     except e:
         raised = True
-        assert_true(String(e).find("extra") >= 0, String(e))
+        assert_true("extra" in String(e), String(e))
     assert_true(raised, "DenyUnknownFields must reject an unknown child")
 
 

@@ -153,7 +153,7 @@ def test_records_stream_with_inherited_namespaces() raises:
         var rec = it.next()
         if not rec:
             break
-        assert_true(rec.value().find('xmlns:arxiv="http://arxiv.org/schemas/atom"') > 0)
+        assert_true('xmlns:arxiv="http://arxiv.org/schemas/atom"' in rec.value())
         assert_equal(from_xml[Entry](rec.value()).title, "Attention Is All You Need")
         n += 1
     assert_equal(n, 1)
@@ -182,7 +182,7 @@ def test_integer_out_of_range_raises() raises:
         try:
             _ = from_xml[Narrow]("<s " + bad + "/>")
         except e:
-            raised = String(e).find("out of range") >= 0
+            raised = "out of range" in String(e)
         assert_true(raised, "accepted " + bad)
     var n = from_xml[Narrow]('<s a="255" b="-2147483648" c="-128"/>')
     assert_equal(Int(n.a), 255)

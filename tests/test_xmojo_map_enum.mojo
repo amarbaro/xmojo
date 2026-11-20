@@ -53,8 +53,8 @@ def test_enum_unknown_arm_raises_with_message() raises:
         _ = from_xml[S]('<s kind="Gamma"/>')
     except e:
         raised = True
-        assert_true(String(e).find("enum") >= 0, String(e))
-        assert_true(String(e).find("Gamma") >= 0, String(e))
+        assert_true("enum" in String(e), String(e))
+        assert_true("Gamma" in String(e), String(e))
     assert_true(raised, "expected DeserializationError")
 
 
@@ -67,7 +67,7 @@ def test_dict_key_must_be_an_xml_name() raises:
         try:
             _ = to_xml(m, "r")
         except e:
-            raised = String(e).find("not an XML name") >= 0
+            raised = "not an XML name" in String(e)
         assert_true(raised, "key accepted: " + key)
     var ok = Dict[String, String]()
     ok["p:k-1.b"] = "v"

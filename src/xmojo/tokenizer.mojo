@@ -199,6 +199,14 @@ def decode_into[attr: Bool = False, cdata: Bool = False](
     out.extend(raw[start:n])
 
 
+def _pos(r: Int) -> Int:
+    return r
+
+
+def _pos(r: Optional[Int]) -> Int:
+    return r.or_else(-1)
+
+
 def _bad_decl(src: Span[UInt8, _]) -> XmlError:
     return make_error(src, 0, "", "malformed XML declaration")
 
@@ -209,7 +217,7 @@ def check_decl(src: Span[UInt8, _]) raises XmlError:
     if len(src) < 6 or _bytes_to_string(src[0:5]) != "<?xml" or not _is_space(src[5]):
         return
     var d = _bytes_to_string(src[5:])
-    var end = d.find("?>")
+    var end = _pos(d.find("?>"))
     if end < 0:
         raise _bad_decl(src)
     var rest = String(d[byte=0:end])
@@ -230,7 +238,7 @@ def check_decl(src: Span[UInt8, _]) raises XmlError:
             raise _bad_decl(src)
         rest = String(String(rest[byte=1:]).lstrip())
         var q = String(rest[byte=0:1])
-        var close = rest.find(q, 1) if q == "'" or q == '"' else -1
+        var close = _pos(rest.find(q, 1)) if q == "'" or q == '"' else -1
         if close < 0:
             raise _bad_decl(src)
         var v = String(rest[byte=1:close])

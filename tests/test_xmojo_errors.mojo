@@ -26,7 +26,7 @@ def test_mismatched_end_tag_position() raises:
         assert_equal(e.line, 3)
         assert_equal(e.col, 1)
         assert_equal(e.tag, "b")
-        assert_true(String(e).find("mismatched end tag </a>") >= 0, String(e))
+        assert_true("mismatched end tag </a>" in String(e), String(e))
     assert_true(raised, "expected XmlError")
 
 
@@ -37,7 +37,7 @@ def test_unquoted_attribute_expects_quote() raises:
     except e:
         raised = True
         assert_equal(e.line, 1)
-        assert_true(String(e).find("expected quote") >= 0, String(e))
+        assert_true("expected quote" in String(e), String(e))
     assert_true(raised, "expected XmlError")
 
 

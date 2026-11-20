@@ -37,7 +37,7 @@ def test_undeclared_prefix_raises() raises:
         _ = parse("<x:a/>")
     except e:
         raised = True
-        assert_true(String(e).find("x") >= 0, String(e))
+        assert_true("x" in String(e), String(e))
     assert_true(raised, "expected XmlError")
 
 

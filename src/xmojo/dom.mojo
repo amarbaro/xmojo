@@ -2,7 +2,7 @@
 # Arena DOM: one fixed-size record per element in a flat list. Names and namespace URIs are
 # interned; decoded text and attribute values live in one byte pool. Whitespace-only text is
 # dropped by the tokenizer unless xml:space="preserve" is in scope.
-from .tokenizer import Tokenizer, Token, TokenKind, Attr, make_error, decode_into, check_decl, qname_colon
+from .tokenizer import Tokenizer, Token, TokenKind, Attr, make_error, decode_into, check_decl, qname_colon, _pos
 from .error import XmlError
 
 comptime NONE: Int32 = -1
@@ -64,7 +64,7 @@ struct Doc(Movable, Sized):
         if id:
             return Int32(id.value())
         var n = len(self.names)
-        var c = s.find(":")
+        var c = _pos(s.find(":"))
         self.name_ids[s.copy()] = n
         self.names.append(s^)
         self.local_of.append(Int32(n))
@@ -89,7 +89,7 @@ struct Doc(Movable, Sized):
 
     def prefix(self, i: Int) -> String:
         ref q = self.names[Int(self.nodes[i].name)]
-        var c = q.find(":")
+        var c = _pos(q.find(":"))
         return String(q[byte=0:c]) if c >= 0 else String("")
 
     def ns(self, i: Int) -> String:
