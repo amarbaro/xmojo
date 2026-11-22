@@ -1,5 +1,7 @@
 # xmojo
 
+> **Moved:** this library now lives in [amarbaro/mojo-libs](https://github.com/amarbaro/mojo-libs/tree/main/libs/xmojo). This repository is read-only; issues and pull requests go there.
+
 <!-- badges -->
 [![ci](https://github.com/amarbaro/xmojo/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/amarbaro/xmojo/actions/workflows/ci.yml) [![latest release](https://img.shields.io/github/v/release/amarbaro/xmojo)](https://github.com/amarbaro/xmojo/releases/latest) [![license](https://img.shields.io/github/license/amarbaro/xmojo)](https://github.com/amarbaro/xmojo/blob/main/LICENSE) [![checks](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/amarbaro/xmojo/badges/checks.json)](https://github.com/amarbaro/xmojo/actions/workflows/ci.yml)
 <!-- /badges -->
